@@ -1,6 +1,6 @@
 const {
   RaisedButton,
-  FlatButton, 
+  FlatButton,
   CircularProgress,
   FontIcon
 } = mui;
@@ -12,7 +12,7 @@ App = React.createClass({
   mixins: [ReactMeteorData],
   getInitialState: function () {
     return {
-      selectedPlayerId: null  
+      selectedPlayerId: null
     };
   },
   childContextTypes: {
@@ -54,7 +54,11 @@ App = React.createClass({
 
   setPayoutView(playerId) {
     this.togglePayoutView();
-    this.setPlayerPoints(playerId)
+    this.setPlayerPoints(playerId);
+  },
+
+  deletePlayer(playerId) {
+    Players.remove(playerId);
   },
 
   togglePayoutView() {
@@ -75,7 +79,7 @@ App = React.createClass({
   resetPlayerScores() {
     Meteor.call('resetPlayerScores');
   },
-  
+
   render() {
     let bottomBar;
     let listView;
@@ -87,7 +91,12 @@ App = React.createClass({
           <FlatButton
             onClick={this.setPayoutView.bind(this, this.state.selectedPlayerId)}
             rippleColor={Colors.greenA700}
-            label="$$$"
+            label="Settle"
+          />
+          <FlatButton
+            onClick={this.deletePlayer.bind(this, this.state.selectedPlayerId)}
+            rippleColor={Colors.redA700}
+            label="Remove"
           />
           <RaisedButton
             onClick={this.addPointsToPlayer.bind(
