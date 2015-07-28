@@ -1,4 +1,8 @@
 const {
+  AppBar,
+  ActionAlarmAdd,
+  SvgIcon,
+  IconButton,
   RaisedButton,
   FlatButton,
   CircularProgress,
@@ -135,13 +139,18 @@ App = React.createClass({
       subtitle = 'Scores'
     }
 
+    appBarRightElement = (
+      <IconButton iconClassName="material-icons" tooltipPosition="bottom-center"
+  tooltip="Favorite">keyboard_arrow_down</IconButton>
+    )
+
     return (
       <div className="outer">
         <div className="logo"><CircularProgress onClick= {this.resetPlayerScores} mode="indeterminate" size={.5} /></div>
-        <div className="center">
-          <h1 className="title">Ring Game</h1>
-          <h3 className='subtitle'>{subtitle}</h3>
-        </div>
+        <AppBar
+          title='Ring Game'
+          iconElementRight={ appBarRightElement }
+        />
         { listView }
         <NewPlayer />
         { bottomBar }
