@@ -6,7 +6,7 @@ const {
   RaisedButton,
   FlatButton,
   CircularProgress,
-  Menu,
+  IconMenu,
   MenuItem,
   FontIcon
 } = mui;
@@ -114,6 +114,7 @@ App = React.createClass({
     let subtitle;
     let optionsMenu;
 
+    /* Bottom Action Bar */
     if (this.state.selectedPlayerId) {
       bottomBar = (
         <div className="details">
@@ -151,6 +152,7 @@ App = React.createClass({
       bottomBar = <div className="message">Click a player to select</div>;
     }
 
+    /* Settlement / Payout View */
     if (this.state.payoutView) {
       listView = <LeaderboardPayout players={this.data.players}
         selectedPlayerId={this.state.selectedPlayerId}
@@ -164,39 +166,26 @@ App = React.createClass({
       subtitle = 'Scores'
     }
 
-    if (this.state.optionsMenu) {
-      console.log('render method: this.state.optionsMenu:', this.state.optionsMenu);
-      optionsMenu =  (
-          <Menu onItemTouchTap={ this.menuTouch }>
-            <MenuItem primaryText="New Game" value='new'/>
-            <MenuItem primaryText="Add Player" value='add'/>
-            <MenuItem primaryText="Remove Player" value='remove'/>
-            <MenuItem primaryText="Settle Score" value='settle' />
-          </Menu>
-      )
-    } else {
-      optionsMenu = <div></div>
-    }
+    /* Options Menu */
+    optionMenuButton = <IconButton iconClassName="material-icons" onTouchTap= { this.menuTouch }>more_vert</IconButton>
 
-    if (this.state.menuValue ){
-
-    }
-
-    appBarRightElement = (
-      <IconButton
-        iconClassName="material-icons"
-        onTouchTap= { this.toggleOptionsMenu }
-      >more_vert</IconButton>
+    optionsMenu =  (
+      <IconMenu onItemTouchTap={ this.menuTouch } iconButtonElement= { optionMenuButton }>
+        <MenuItem primaryText="New Game" value='new'/>
+        <MenuItem primaryText="Add Player" value='add'/>
+        <MenuItem primaryText="Remove Player" value='remove'/>
+        <MenuItem primaryText="Settle Score" value='settle' />
+      </IconMenu>
     )
 
+    /* Return Rendering */
     return (
       <div>
         <div className="logo"><CircularProgress onClick= {this.resetPlayerScores} mode="indeterminate" size={.5} /></div>
         <AppBar
           title='Ring Game'
-          iconElementRight={ appBarRightElement }
+          iconElementRight={ optionsMenu }
         />
-        { optionsMenu }
         { listView }
         <NewPlayer />
         { bottomBar }
