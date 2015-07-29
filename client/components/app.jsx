@@ -6,6 +6,8 @@ const {
   RaisedButton,
   FlatButton,
   CircularProgress,
+  Menu,
+  MenuItem,
   FontIcon
 } = mui;
 
@@ -34,6 +36,13 @@ App = React.createClass({
       players: Players.find({}, { sort: { score: -1, name: 1 } }).fetch(),
       selectedPlayer: Players.findOne(this.state.selectedPlayerId)
     }
+  },
+
+  menuTouch(e, item) {
+    console.log('menu touched', e, item.props.value)
+    this.setState({
+      menuValue: item.props.value
+    })
   },
 
   selectPlayer(playerId) {
@@ -66,6 +75,7 @@ App = React.createClass({
   },
 
   togglePayoutView() {
+    console.log('toggling payout view')
     if(this.state.payoutView == true) {
       this.setState({
         payoutView: false
@@ -75,6 +85,20 @@ App = React.createClass({
         payoutView: true
      });
     }
+  },
+
+  toggleOptionsMenu() {
+    console.log('toggling options menu')
+    if(this.state.optionsMenu == true) {
+      this.setState({
+        optionsMenu: false
+      })
+    } else {
+      this.setState({
+        optionsMenu: true
+     });
+    }
+    console.log('state.optionsMenu is', this.state.optionsMenu)
   },
 
   addPointsToPlayer(playerId, points) {
@@ -88,6 +112,7 @@ App = React.createClass({
     let bottomBar;
     let listView;
     let subtitle;
+    let optionsMenu;
 
     if (this.state.selectedPlayerId) {
       bottomBar = (
@@ -139,18 +164,39 @@ App = React.createClass({
       subtitle = 'Scores'
     }
 
+    if (this.state.optionsMenu) {
+      console.log('render method: this.state.optionsMenu:', this.state.optionsMenu);
+      optionsMenu =  (
+          <Menu onItemTouchTap={ this.menuTouch }>
+            <MenuItem primaryText="New Game" value='new'/>
+            <MenuItem primaryText="Add Player" value='add'/>
+            <MenuItem primaryText="Remove Player" value='remove'/>
+            <MenuItem primaryText="Settle Score" value='settle' />
+          </Menu>
+      )
+    } else {
+      optionsMenu = <div></div>
+    }
+
+    if (this.state.menuValue ){
+
+    }
+
     appBarRightElement = (
-      <IconButton iconClassName="material-icons" tooltipPosition="bottom-center"
-  tooltip="Favorite">keyboard_arrow_down</IconButton>
+      <IconButton
+        iconClassName="material-icons"
+        onTouchTap= { this.toggleOptionsMenu }
+      >more_vert</IconButton>
     )
 
     return (
-      <div className="outer">
+      <div>
         <div className="logo"><CircularProgress onClick= {this.resetPlayerScores} mode="indeterminate" size={.5} /></div>
         <AppBar
           title='Ring Game'
           iconElementRight={ appBarRightElement }
         />
+        { optionsMenu }
         { listView }
         <NewPlayer />
         { bottomBar }
