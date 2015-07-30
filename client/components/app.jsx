@@ -1,8 +1,10 @@
 const {
+  AppBar,
+  IconButton,
   RaisedButton,
   FlatButton,
-  CircularProgress,
-  FontIcon
+  IconMenu,
+  MenuItem
 } = mui;
 
 const ThemeManager = new mui.Styles.ThemeManager();
@@ -12,6 +14,8 @@ App = React.createClass({
   mixins: [ReactMeteorData],
   getInitialState: function () {
     return {
+      subtitle: 'Ring Game',
+      listView: 'scores',
       selectedPlayerId: null
     };
   },
@@ -32,10 +36,23 @@ App = React.createClass({
     }
   },
 
+  menuTouch(e, item) {
+    if(item){
+      // run menu action
+      switch(item.props.value){
+        case 'new': this.startNewGame(); break;
+        case 'add': this.toggleAddPlayerView(); break;
+        case 'remove': this.setDeletePlayerView(); break;
+        case 'settle': this.setPlayerSettleView(this.defaultSelectedPlayerId()); break;
+      }
+
+      // set state
+      this.setState({ menuValue: item.props.value })
+    }
+  },
+
   selectPlayer(playerId) {
-    this.setState({
-      selectedPlayerId: playerId
-    });
+    this.setState({ selectedPlayerId: playerId });
     this.setPlayerPoints(playerId);
   },
 
@@ -52,98 +69,154 @@ App = React.createClass({
     });
   },
 
-  setPayoutView(playerId) {
-    this.togglePayoutView();
+  setPlayerSettleView(playerId) {
     this.setPlayerPoints(playerId);
+    this.setViewSettle()
+  },
+
+  setDeletePlayerView() {
+    this.setState({
+      listView: 'removePlayer',
+      subtitle: 'Remove Player'
+    })
   },
 
   deletePlayer(playerId) {
     Players.remove(playerId);
   },
 
-  togglePayoutView() {
-    if(this.state.payoutView == true) {
+  setViewSettle() {
+    this.setState({
+      listView: 'settle',
+      subtitle: 'Settlement'
+    })
+  },
+
+  toggleAddPlayerView() {
+    if(this.state.addPlayerView == true) {
       this.setState({
-        payoutView: false
+        addPlayerView: false,
       })
     } else {
       this.setState({
-        payoutView: true
+        addPlayerView: true,
+        subtitle: 'Add Player'
      });
     }
   },
 
   addPointsToPlayer(playerId, points) {
-    Players.update(playerId, {$inc: {score: points}});
+    Players.update(playerId, { $inc: { score: points }});
   },
+
   resetPlayerScores() {
     Meteor.call('resetPlayerScores');
+  },
+  startNewGame() {
+    this.resetPlayerScores();
+    this.setHomeView();
+  },
+  setHomeView() {
+    this.setState({
+      listView: 'scores',
+      subtitle: 'Ring Game',
+      addPlayerView: false
+    })
+  },
+
+  defaultSelectedPlayerId() {
+    if (!this.state.selectedPlayerId) {
+      this.setState({ selectedPlayerId: this.data.players[0]._id })
+      return this.data.players[0]._id
+    } else {
+      return this.state.selectedPlayerId
+    }
+
   },
 
   render() {
     let bottomBar;
     let listView;
     let subtitle;
+    let optionsMenu;
+    let navMenu;
+    let addPlayer;
 
-    if (this.state.selectedPlayerId) {
+    /* Nav Menu */
+    if(this.state.listView != 'scores' || this.state.addPlayerView) {
+      navMenu = <IconButton iconClassName="material-icons" onTouchTap= { this.setHomeView }>arrow_back</IconButton>
+    } else {
+      navMenu = <div></div>
+    }
+
+    /* Options Menu */
+    optionMenuButton = <IconButton iconClassName="material-icons" onTouchTap= { this.menuTouch }>more_vert</IconButton>
+
+    optionsMenu =  (
+      <IconMenu onItemTouchTap = {  this.menuTouch } iconButtonElement= { optionMenuButton }>
+        <MenuItem primaryText="New Game" value='new'/>
+        <MenuItem primaryText="Add Player" value='add'/>
+        <MenuItem primaryText="Remove Player" value='remove'/>
+        <MenuItem primaryText="Settle Score" value='settle' />
+      </IconMenu>
+    )
+
+    /* Leaderboard List */
+    listView = <Leaderboard players = { this.data.players }
+      selectedPlayerId = { this.state.selectedPlayerId }
+      selectedPlayerPoints = { this.state.selectedPlayerPoints }
+      listView = { this.state.listView }
+      onPlayerSelected = { this.selectPlayer }
+      onDeletePlayer = { this.deletePlayer } />
+
+    /* Bottom Action Bar */
+    if (this.state.selectedPlayerId && this.state.listView == 'scores') {
       bottomBar = (
         <div className="details">
-          <FlatButton
-            onClick={this.setPayoutView.bind(this, this.state.selectedPlayerId)}
-            rippleColor={Colors.greenA700}
-            label="Settle"
-          />
-          <FlatButton
-            onClick={this.deletePlayer.bind(this, this.state.selectedPlayerId)}
-            rippleColor={Colors.redA700}
-            label="Remove"
-          />
           <RaisedButton
-            onClick={this.addPointsToPlayer.bind(
+            onClick = { this.addPointsToPlayer.bind(
               this, this.state.selectedPlayerId, 2)}
-            style={{float: "right"}}
+            style = {{ float: "right" }}
             label="+2"
-            secondary={true}/>
+            secondary = { true }/>
           <RaisedButton
-            onClick={this.addPointsToPlayer.bind(
+            onClick = { this.addPointsToPlayer.bind(
               this, this.state.selectedPlayerId, 4)}
-            style={{float: "right", margin: "0 5px 0 0"}}
+            style = {{ float: "right", margin: "0 5px 0 0" }}
             label="+4"
-            primary={true}/>
+            primary = { true }/>
           <RaisedButton
-            onClick={this.addPointsToPlayer.bind(
+            onClick = { this.addPointsToPlayer.bind(
               this, this.state.selectedPlayerId, -2)}
-            style={{float: "right", margin: "0 5px 0 0"}}
+            style = {{ float: "right", margin: "0 5px 0 0" }}
             label="-2"
-            secondary={true}/>
+            secondary = { true }/>
         </div>
+      )
+    } else if (this.state.selectedPlayerId && this.state.listView == 'settle') {
+      bottomBar = (
+        <div className="message">Click a player to see settlements. Positive values mean that player owes you money. Negative means you owe them.</div>
       )
     } else {
       bottomBar = <div className="message">Click a player to select</div>;
     }
 
-    if (this.state.payoutView) {
-      listView = <LeaderboardPayout players={this.data.players}
-        selectedPlayerId={this.state.selectedPlayerId}
-        selectedPlayerPoints={this.state.selectedPlayerPoints}
-        onPlayerSelected={this.selectPlayer} />
-      subtitle = 'Payouts'
+    if (this.state.addPlayerView && this.state.listView == 'scores') {
+      addPlayer = <NewPlayer />
     } else {
-      listView = <Leaderboard players={this.data.players}
-        selectedPlayerId={this.state.selectedPlayerId}
-        onPlayerSelected={this.selectPlayer} />
-      subtitle = 'Scores'
+      addPlayer = <div></div>
     }
 
+    /* Rendering */
     return (
-      <div className="outer">
-        <div className="logo"><CircularProgress onClick= {this.resetPlayerScores} mode="indeterminate" size={.5} /></div>
-        <div className="center">
-          <h1 className="title">Ring Game</h1>
-          <h3 className='subtitle'>{subtitle}</h3>
-        </div>
+      <div>
+        <AppBar
+          title = { this.state.subtitle }
+          iconElementLeft = { navMenu }
+          iconElementRight = { optionsMenu }
+        />
         { listView }
-        <NewPlayer />
+        { addPlayer }
         { bottomBar }
       </div>
     )

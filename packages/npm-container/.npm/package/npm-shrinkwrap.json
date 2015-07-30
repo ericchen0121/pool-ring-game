@@ -4,9 +4,20 @@
       "version": "0.1.0",
       "dependencies": {
         "globo": {
-          "version": "1.0.0",
+          "version": "1.0.2",
           "dependencies": {
-            "pff": {
+            "accessory": {
+              "version": "1.0.1",
+              "dependencies": {
+                "dot-parts": {
+                  "version": "1.0.1"
+                }
+              }
+            },
+            "is-defined": {
+              "version": "1.0.0"
+            },
+            "ternary": {
               "version": "1.0.0"
             }
           }
@@ -18,7 +29,7 @@
           "version": "1.0.0",
           "dependencies": {
             "detective": {
-              "version": "4.1.0",
+              "version": "4.1.1",
               "dependencies": {
                 "acorn": {
                   "version": "1.2.2"
@@ -65,7 +76,7 @@
                       "version": "0.1.43",
                       "dependencies": {
                         "amdefine": {
-                          "version": "0.1.1"
+                          "version": "1.0.0"
                         }
                       }
                     }
@@ -143,8 +154,11 @@
         }
       }
     },
+    "material-design-icons": {
+      "version": "2.0.0"
+    },
     "material-ui": {
-      "version": "0.10.1",
+      "version": "0.10.2",
       "dependencies": {
         "classnames": {
           "version": "1.2.2"

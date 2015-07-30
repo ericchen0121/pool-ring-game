@@ -1,5 +1,6 @@
 {
-  "material-ui": "0.10.1",
+  "material-ui": "0.10.2",
+  "material-design-icons": "2.0.0",
   "externalify": "0.1.0",
   "react-tap-event-plugin": "0.1.7"
 }

@@ -7,22 +7,12 @@ body {
   font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 16px;
   font-weight: normal;
-  margin: 3em 0;
   padding: 0;
 }
 
 .outer {
   margin: 0 auto;
   max-width: 480px;
-}
-
-.logo {
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  height: 1.5em;
-  margin: 0 43% 1.75em;
-  width: 1.5em;
 }
 
 .center {
@@ -114,9 +104,5 @@ body {
 
   .details .inc {
     padding: 10px 20px;
-  }
-
-  body {
-    margin: 2em 0 4em 0;
   }
 }

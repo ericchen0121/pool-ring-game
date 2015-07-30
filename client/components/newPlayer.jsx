@@ -1,6 +1,6 @@
 const {
-  TextField, 
-  FloatingActionButton, 
+  TextField,
+  FlatButton,
   FontIcon
 } = mui;
 
@@ -25,13 +25,12 @@ NewPlayer = React.createClass({
     return (
       <div>
         <TextField hintText='New Player' value={this.state.newPlayer} onChange={this.handleTextChange} />
-        <FloatingActionButton
-          iconClassName="muidocs-icon-action-grade" 
-          mini={true}
+        <FlatButton
+          label="Add"
           onClick = { this.addNewPlayer }
           secondary= { true }
         />
       </div>
-    ) 
+    )
   }
 });
