@@ -39,10 +39,19 @@ App = React.createClass({
   },
 
   menuTouch(e, item) {
-    console.log('menu touched', e, item.props.value)
     this.setState({
       menuValue: item.props.value
     })
+    this.menuController();
+  },
+
+  menuController() {
+    switch(this.state.menuValue){
+      case 'new': this.resetPlayerScores(); break;
+      case 'add': this.toggleAddPlayerView(); break;
+      case 'delete': console.log('deleting'); break;
+      case 'settle': this.togglePayoutView(); break;
+    }
   },
 
   selectPlayer(playerId) {
@@ -66,7 +75,6 @@ App = React.createClass({
   },
 
   setPayoutView(playerId) {
-    this.togglePayoutView();
     this.setPlayerPoints(playerId);
   },
 
@@ -75,7 +83,7 @@ App = React.createClass({
   },
 
   togglePayoutView() {
-    console.log('toggling payout view')
+    console.log('toggle Payout!')
     if(this.state.payoutView == true) {
       this.setState({
         payoutView: false
@@ -87,18 +95,16 @@ App = React.createClass({
     }
   },
 
-  toggleOptionsMenu() {
-    console.log('toggling options menu')
-    if(this.state.optionsMenu == true) {
+  toggleAddPlayerView() {
+    if(this.state.addPlayerView == true) {
       this.setState({
-        optionsMenu: false
+        addPlayerView: false
       })
     } else {
       this.setState({
-        optionsMenu: true
+        addPlayerView: true
      });
     }
-    console.log('state.optionsMenu is', this.state.optionsMenu)
   },
 
   addPointsToPlayer(playerId, points) {
@@ -113,6 +119,7 @@ App = React.createClass({
     let listView;
     let subtitle;
     let optionsMenu;
+    let addPlayer;
 
     /* Bottom Action Bar */
     if (this.state.selectedPlayerId) {
@@ -166,6 +173,14 @@ App = React.createClass({
       subtitle = 'Scores'
     }
 
+    if (this.state.addPlayerView) {
+      console.log('addPlayerView')
+      addPlayer = <NewPlayer />
+      subtitle = 'Add Player'
+    } else {
+      addPlayer = <div></div>
+    }
+
     /* Options Menu */
     optionMenuButton = <IconButton iconClassName="material-icons" onTouchTap= { this.menuTouch }>more_vert</IconButton>
 
@@ -181,13 +196,12 @@ App = React.createClass({
     /* Return Rendering */
     return (
       <div>
-        <div className="logo"><CircularProgress onClick= {this.resetPlayerScores} mode="indeterminate" size={.5} /></div>
         <AppBar
-          title='Ring Game'
+          title={ 'Ring Game: ' + subtitle }
           iconElementRight={ optionsMenu }
         />
         { listView }
-        <NewPlayer />
+        { addPlayer }
         { bottomBar }
       </div>
     )
