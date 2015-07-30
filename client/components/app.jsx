@@ -14,6 +14,7 @@ App = React.createClass({
   mixins: [ReactMeteorData],
   getInitialState: function () {
     return {
+      subtitle: 'Ring Game',
       listView: 'scores',
       selectedPlayerId: null
     };
@@ -41,7 +42,7 @@ App = React.createClass({
       switch(item.props.value){
         case 'new': this.startNewGame(); break;
         case 'add': this.toggleAddPlayerView(); break;
-        case 'remove': this.setState({ listView: 'removePlayer' }); break;
+        case 'remove': this.setDeletePlayerView(); break;
         case 'settle': this.setPlayerSettleView(this.defaultSelectedPlayerId()); break;
       }
 
@@ -73,21 +74,33 @@ App = React.createClass({
     this.setViewSettle()
   },
 
+  setDeletePlayerView() {
+    this.setState({
+      listView: 'removePlayer',
+      subtitle: 'Remove Player'
+    })
+  },
+
   deletePlayer(playerId) {
     Players.remove(playerId);
   },
 
   setViewSettle() {
-    this.setState({ listView: 'settle' })
+    this.setState({
+      listView: 'settle',
+      subtitle: 'Settlement'
+    })
   },
 
   toggleAddPlayerView() {
     if(this.state.addPlayerView == true) {
-      this.setState({ addPlayerView: false
+      this.setState({
+        addPlayerView: false,
       })
     } else {
       this.setState({
-        addPlayerView: true
+        addPlayerView: true,
+        subtitle: 'Add Player'
      });
     }
   },
@@ -101,8 +114,16 @@ App = React.createClass({
   },
   startNewGame() {
     this.resetPlayerScores();
-    this.setState({ listView: 'scores' })
+    this.setHomeView();
   },
+  setHomeView() {
+    this.setState({
+      listView: 'scores',
+      subtitle: 'Ring Game',
+      addPlayerView: false
+    })
+  },
+
   defaultSelectedPlayerId() {
     if (!this.state.selectedPlayerId) {
       this.setState({ selectedPlayerId: this.data.players[0]._id })
@@ -118,7 +139,15 @@ App = React.createClass({
     let listView;
     let subtitle;
     let optionsMenu;
+    let navMenu;
     let addPlayer;
+
+    /* Nav Menu */
+    if(this.state.listView != 'scores' || this.state.addPlayerView) {
+      navMenu = <IconButton iconClassName="material-icons" onTouchTap= { this.setHomeView }>arrow_back</IconButton>
+    } else {
+      navMenu = <div></div>
+    }
 
     /* Options Menu */
     optionMenuButton = <IconButton iconClassName="material-icons" onTouchTap= { this.menuTouch }>more_vert</IconButton>
@@ -141,7 +170,7 @@ App = React.createClass({
       onDeletePlayer = { this.deletePlayer } />
 
     /* Bottom Action Bar */
-    if (this.state.selectedPlayerId) {
+    if (this.state.selectedPlayerId && this.state.listView == 'scores') {
       bottomBar = (
         <div className="details">
           <RaisedButton
@@ -149,13 +178,13 @@ App = React.createClass({
               this, this.state.selectedPlayerId, 2)}
             style = {{ float: "right" }}
             label="+2"
-            secondary = { true}/>
+            secondary = { true }/>
           <RaisedButton
             onClick = { this.addPointsToPlayer.bind(
               this, this.state.selectedPlayerId, 4)}
             style = {{ float: "right", margin: "0 5px 0 0" }}
             label="+4"
-            primary = { true}/>
+            primary = { true }/>
           <RaisedButton
             onClick = { this.addPointsToPlayer.bind(
               this, this.state.selectedPlayerId, -2)}
@@ -164,13 +193,16 @@ App = React.createClass({
             secondary = { true }/>
         </div>
       )
+    } else if (this.state.selectedPlayerId && this.state.listView == 'settle') {
+      bottomBar = (
+        <div className="message">Click a player to see settlements. Positive values mean that player owes you money. Negative means you owe them.</div>
+      )
     } else {
       bottomBar = <div className="message">Click a player to select</div>;
     }
 
-    if (this.state.addPlayerView) {
+    if (this.state.addPlayerView && this.state.listView == 'scores') {
       addPlayer = <NewPlayer />
-      subtitle = 'Add Player'
     } else {
       addPlayer = <div></div>
     }
@@ -179,8 +211,9 @@ App = React.createClass({
     return (
       <div>
         <AppBar
-          title = {  'Ring Game: ' + subtitle }
-          iconElementRight = {  optionsMenu }
+          title = { this.state.subtitle }
+          iconElementLeft = { navMenu }
+          iconElementRight = { optionsMenu }
         />
         { listView }
         { addPlayer }
