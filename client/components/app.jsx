@@ -18,6 +18,7 @@ App = React.createClass({
   mixins: [ReactMeteorData],
   getInitialState: function () {
     return {
+      payoutView: false,
       selectedPlayerId: null
     };
   },
@@ -39,19 +40,22 @@ App = React.createClass({
   },
 
   menuTouch(e, item) {
-    this.setState({
-      menuValue: item.props.value
-    })
-    this.menuController();
-  },
 
-  menuController() {
-    switch(this.state.menuValue){
-      case 'new': this.resetPlayerScores(); break;
-      case 'add': this.toggleAddPlayerView(); break;
-      case 'delete': console.log('deleting'); break;
-      case 'settle': this.togglePayoutView(); break;
+    if(item){
+      // run menu action
+      switch(item.props.value){
+        case 'new': this.resetPlayerScores(); break;
+        case 'add': this.toggleAddPlayerView(); break;
+        case 'remove': console.log('deleting'); break;
+        case 'settle': this.setPlayerPayoutView(this.defaultSelectedPlayerId()); break;
+      }
+
+      // set state
+      this.setState({
+        menuValue: item.props.value
+      })
     }
+
   },
 
   selectPlayer(playerId) {
@@ -74,8 +78,9 @@ App = React.createClass({
     });
   },
 
-  setPayoutView(playerId) {
+  setPlayerPayoutView(playerId) {
     this.setPlayerPoints(playerId);
+    this.togglePayoutView()
   },
 
   deletePlayer(playerId) {
@@ -83,7 +88,6 @@ App = React.createClass({
   },
 
   togglePayoutView() {
-    console.log('toggle Payout!')
     if(this.state.payoutView == true) {
       this.setState({
         payoutView: false
@@ -94,6 +98,7 @@ App = React.createClass({
      });
     }
   },
+
 
   toggleAddPlayerView() {
     if(this.state.addPlayerView == true) {
@@ -110,8 +115,20 @@ App = React.createClass({
   addPointsToPlayer(playerId, points) {
     Players.update(playerId, {$inc: {score: points}});
   },
+
   resetPlayerScores() {
     Meteor.call('resetPlayerScores');
+    this.setState({payoutView: false})
+  },
+
+  defaultSelectedPlayerId() {
+    if (!this.state.selectedPlayerId) {
+      this.setState({ selectedPlayerId: this.data.players[0]._id })
+      return this.data.players[0]._id
+    } else {
+      return this.state.selectedPlayerId
+    }
+
   },
 
   render() {
@@ -126,7 +143,7 @@ App = React.createClass({
       bottomBar = (
         <div className="details">
           <FlatButton
-            onClick={this.setPayoutView.bind(this, this.state.selectedPlayerId)}
+            onClick={this.setPlayerPayoutView.bind(this, this.state.selectedPlayerId)}
             rippleColor={Colors.greenA700}
             label="Settle"
           />
