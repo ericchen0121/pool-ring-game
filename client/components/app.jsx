@@ -1,14 +1,10 @@
 const {
   AppBar,
-  ActionAlarmAdd,
-  SvgIcon,
   IconButton,
   RaisedButton,
   FlatButton,
-  CircularProgress,
   IconMenu,
-  MenuItem,
-  FontIcon
+  MenuItem
 } = mui;
 
 const ThemeManager = new mui.Styles.ThemeManager();
@@ -18,7 +14,7 @@ App = React.createClass({
   mixins: [ReactMeteorData],
   getInitialState: function () {
     return {
-      payoutView: false,
+      listView: 'scores',
       selectedPlayerId: null
     };
   },
@@ -40,28 +36,22 @@ App = React.createClass({
   },
 
   menuTouch(e, item) {
-
     if(item){
       // run menu action
       switch(item.props.value){
-        case 'new': this.resetPlayerScores(); break;
+        case 'new': this.startNewGame(); break;
         case 'add': this.toggleAddPlayerView(); break;
-        case 'remove': console.log('deleting'); break;
-        case 'settle': this.setPlayerPayoutView(this.defaultSelectedPlayerId()); break;
+        case 'remove': this.setState({ listView: 'removePlayer' }); break;
+        case 'settle': this.setPlayerSettleView(this.defaultSelectedPlayerId()); break;
       }
 
       // set state
-      this.setState({
-        menuValue: item.props.value
-      })
+      this.setState({ menuValue: item.props.value })
     }
-
   },
 
   selectPlayer(playerId) {
-    this.setState({
-      selectedPlayerId: playerId
-    });
+    this.setState({ selectedPlayerId: playerId });
     this.setPlayerPoints(playerId);
   },
 
@@ -78,32 +68,22 @@ App = React.createClass({
     });
   },
 
-  setPlayerPayoutView(playerId) {
+  setPlayerSettleView(playerId) {
     this.setPlayerPoints(playerId);
-    this.togglePayoutView()
+    this.setViewSettle()
   },
 
   deletePlayer(playerId) {
     Players.remove(playerId);
   },
 
-  togglePayoutView() {
-    if(this.state.payoutView == true) {
-      this.setState({
-        payoutView: false
-      })
-    } else {
-      this.setState({
-        payoutView: true
-     });
-    }
+  setViewSettle() {
+    this.setState({ listView: 'settle' })
   },
-
 
   toggleAddPlayerView() {
     if(this.state.addPlayerView == true) {
-      this.setState({
-        addPlayerView: false
+      this.setState({ addPlayerView: false
       })
     } else {
       this.setState({
@@ -113,14 +93,16 @@ App = React.createClass({
   },
 
   addPointsToPlayer(playerId, points) {
-    Players.update(playerId, {$inc: {score: points}});
+    Players.update(playerId, { $inc: { score: points }});
   },
 
   resetPlayerScores() {
     Meteor.call('resetPlayerScores');
-    this.setState({payoutView: false})
   },
-
+  startNewGame() {
+    this.resetPlayerScores();
+    this.setState({ listView: 'scores' })
+  },
   defaultSelectedPlayerId() {
     if (!this.state.selectedPlayerId) {
       this.setState({ selectedPlayerId: this.data.players[0]._id })
@@ -138,71 +120,11 @@ App = React.createClass({
     let optionsMenu;
     let addPlayer;
 
-    /* Bottom Action Bar */
-    if (this.state.selectedPlayerId) {
-      bottomBar = (
-        <div className="details">
-          <FlatButton
-            onClick={this.setPlayerPayoutView.bind(this, this.state.selectedPlayerId)}
-            rippleColor={Colors.greenA700}
-            label="Settle"
-          />
-          <FlatButton
-            onClick={this.deletePlayer.bind(this, this.state.selectedPlayerId)}
-            rippleColor={Colors.redA700}
-            label="Remove"
-          />
-          <RaisedButton
-            onClick={this.addPointsToPlayer.bind(
-              this, this.state.selectedPlayerId, 2)}
-            style={{float: "right"}}
-            label="+2"
-            secondary={true}/>
-          <RaisedButton
-            onClick={this.addPointsToPlayer.bind(
-              this, this.state.selectedPlayerId, 4)}
-            style={{float: "right", margin: "0 5px 0 0"}}
-            label="+4"
-            primary={true}/>
-          <RaisedButton
-            onClick={this.addPointsToPlayer.bind(
-              this, this.state.selectedPlayerId, -2)}
-            style={{float: "right", margin: "0 5px 0 0"}}
-            label="-2"
-            secondary={true}/>
-        </div>
-      )
-    } else {
-      bottomBar = <div className="message">Click a player to select</div>;
-    }
-
-    /* Settlement / Payout View */
-    if (this.state.payoutView) {
-      listView = <LeaderboardPayout players={this.data.players}
-        selectedPlayerId={this.state.selectedPlayerId}
-        selectedPlayerPoints={this.state.selectedPlayerPoints}
-        onPlayerSelected={this.selectPlayer} />
-      subtitle = 'Payouts'
-    } else {
-      listView = <Leaderboard players={this.data.players}
-        selectedPlayerId={this.state.selectedPlayerId}
-        onPlayerSelected={this.selectPlayer} />
-      subtitle = 'Scores'
-    }
-
-    if (this.state.addPlayerView) {
-      console.log('addPlayerView')
-      addPlayer = <NewPlayer />
-      subtitle = 'Add Player'
-    } else {
-      addPlayer = <div></div>
-    }
-
     /* Options Menu */
     optionMenuButton = <IconButton iconClassName="material-icons" onTouchTap= { this.menuTouch }>more_vert</IconButton>
 
     optionsMenu =  (
-      <IconMenu onItemTouchTap={ this.menuTouch } iconButtonElement= { optionMenuButton }>
+      <IconMenu onItemTouchTap = {  this.menuTouch } iconButtonElement= { optionMenuButton }>
         <MenuItem primaryText="New Game" value='new'/>
         <MenuItem primaryText="Add Player" value='add'/>
         <MenuItem primaryText="Remove Player" value='remove'/>
@@ -210,12 +132,55 @@ App = React.createClass({
       </IconMenu>
     )
 
-    /* Return Rendering */
+    /* Leaderboard List */
+    listView = <Leaderboard players = { this.data.players }
+      selectedPlayerId = { this.state.selectedPlayerId }
+      selectedPlayerPoints = { this.state.selectedPlayerPoints }
+      listView = { this.state.listView }
+      onPlayerSelected = { this.selectPlayer }
+      onDeletePlayer = { this.deletePlayer } />
+
+    /* Bottom Action Bar */
+    if (this.state.selectedPlayerId) {
+      bottomBar = (
+        <div className="details">
+          <RaisedButton
+            onClick = { this.addPointsToPlayer.bind(
+              this, this.state.selectedPlayerId, 2)}
+            style = {{ float: "right" }}
+            label="+2"
+            secondary = { true}/>
+          <RaisedButton
+            onClick = { this.addPointsToPlayer.bind(
+              this, this.state.selectedPlayerId, 4)}
+            style = {{ float: "right", margin: "0 5px 0 0" }}
+            label="+4"
+            primary = { true}/>
+          <RaisedButton
+            onClick = { this.addPointsToPlayer.bind(
+              this, this.state.selectedPlayerId, -2)}
+            style = {{ float: "right", margin: "0 5px 0 0" }}
+            label="-2"
+            secondary = { true }/>
+        </div>
+      )
+    } else {
+      bottomBar = <div className="message">Click a player to select</div>;
+    }
+
+    if (this.state.addPlayerView) {
+      addPlayer = <NewPlayer />
+      subtitle = 'Add Player'
+    } else {
+      addPlayer = <div></div>
+    }
+
+    /* Rendering */
     return (
       <div>
         <AppBar
-          title={ 'Ring Game: ' + subtitle }
-          iconElementRight={ optionsMenu }
+          title = {  'Ring Game: ' + subtitle }
+          iconElementRight = {  optionsMenu }
         />
         { listView }
         { addPlayer }
